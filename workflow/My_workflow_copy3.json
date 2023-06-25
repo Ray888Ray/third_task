@@ -1,0 +1,328 @@
+{
+  "name": "My workflow copy3",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "workspaceId": "648b6ba2120abb5b98c51126"
+      },
+      "id": "b65acfa6-c4e5-4beb-8be9-f75fac58fbf9",
+      "name": "Clockify Trigger",
+      "type": "n8n-nodes-base.clockifyTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        340
+      ],
+      "credentials": {
+        "clockifyApi": {
+          "id": "1",
+          "name": "Clockify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getTimeBetweenDates",
+        "startDate": "={{ $json.timeInterval.start }}",
+        "endDate": "={{ $json.timeInterval.end }}",
+        "units": [
+          "hour",
+          "minute"
+        ],
+        "options": {}
+      },
+      "id": "e6e6f995-0118-4648-acf4-7a3f389e8506",
+      "name": "Date & Time",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        640,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "summarize",
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "sum",
+              "field": "timeDifference.hours"
+            },
+            {
+              "aggregation": "sum",
+              "field": "timeDifference.minutes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "40624ab8-97c2-4296-9732-ed4860eb0266",
+      "name": "Item Lists",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sort",
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "timeDifference",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4835515f-16fd-46c2-b9c3-09f9e5416a96",
+      "name": "Item Lists3",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sort",
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "timeInterval.duration",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c6eff3c9-f314-4496-9100-367f73e6a498",
+      "name": "Item Lists1",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        620,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "aggregateItems",
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "description"
+            },
+            {
+              "fieldToAggregate": "timeInterval.duration"
+            },
+            {
+              "fieldToAggregate": "project.memberships[0].hourlyRate.amount"
+            },
+            {
+              "fieldToAggregate": "user.name"
+            },
+            {
+              "fieldToAggregate": "project.memberships[0].hourlyRate.currency"
+            }
+          ]
+        },
+        "options": {
+          "mergeLists": true
+        }
+      },
+      "id": "0cdede5c-5548-4e87-9a11-150d35ae88ce",
+      "name": "Item Lists2",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "8172bfc1-017a-4a3a-bb2f-108bb9d9e973",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "890420988",
+        "text": "=Name: {{ $json[\"name\"].unique()}}\nTask:{{ $json[\"description\"].first()}}, Duration: {{ $json[\"duration\"].first()}}\nTotal Hours: {{ $json[\"sum_timeDifference_hours\"] }}\nTotal Minutes: {{ $json[\"sum_timeDifference_minutes\"] }}\nTotal Payment:  {{ $json.propertyName }} {{ $json.currency.unique()}}",
+        "additionalFields": {}
+      },
+      "id": "e10db170-4299-4d81-a390-c8e394e9d701",
+      "name": "Telegram1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "3",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "value": "={{$json.amount.unique()*($json.sum_timeDifference_hours+( $json.sum_timeDifference_minutes /60))}}"
+            },
+            {
+              "name": "minute(dec)"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "e4168e28-eb67-4c88-9759-6c40bc1963a3",
+      "name": "Set1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Clockify Trigger": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Item Lists1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "Item Lists3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Lists3": {
+      "main": [
+        [
+          {
+            "node": "Item Lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Lists1": {
+      "main": [
+        [
+          {
+            "node": "Item Lists2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Lists2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Item Lists": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Set1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set1": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "30d7a22a-0262-4e62-9105-08e635f8f09b",
+  "id": "3",
+  "meta": {
+    "instanceId": "f2fe9d17a853db41f729ae2c4a2c9c268cfcf953c077605a2b3a6ff8707bcfeb"
+  },
+  "tags": [
+    {
+      "createdAt": "2023-06-22T19:46:47.904Z",
+      "updatedAt": "2023-06-22T19:46:47.904Z",
+      "id": "1",
+      "name": "task3"
+    }
+  ]
+}
